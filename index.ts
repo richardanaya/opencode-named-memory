@@ -6,19 +6,18 @@ import * as path from "path";
 import * as os from "os";
 
 export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
-  const { client } = ctx;   // full ctx stays in scope for tools + hooks
+  const { client } = ctx;
 
-  const pluginConfig = ((ctx as any).config?.["opencode-named-memory"] || {}) as any;
-  const importanceThreshold = pluginConfig.importanceThreshold ?? 0.009;
-  const noveltyThreshold = pluginConfig.noveltyThreshold ?? 0.87;
-  const maxMemories = pluginConfig.maxMemories ?? 7;
+  const importanceThreshold = 0.009;
+  const noveltyThreshold = 0.87;
+  const maxMemories = 7;
 
   let activeMemory: Awaited<ReturnType<typeof createAgentMemory>> | null = null;
   let activeName: string | null = null;
   let activeShouldCreate: ((content: string) => Promise<boolean>) | null = null;
   let dbDir: string | null = null;
 
-  // ── Official OpenCode config path (exact StatusPlugin pattern) ──
+  // ── Official OpenCode config path ──
   async function getDbDir(): Promise<string> {
     if (dbDir) return dbDir;
 
@@ -35,7 +34,6 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
     return dbDir;
   }
 
-  // Helper: sanitize name → safe filename
   function sanitizeName(raw: string): string {
     return raw
       .toLowerCase()
@@ -54,16 +52,21 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
     async execute(args) {
       try {
         const dir = await getDbDir();
-        await ctx.$`mkdir -p ${dir}`;   // ← now ctx is correctly in scope
+        await ctx.$`mkdir -p ${dir}`;
 
         const name = sanitizeName(args.name);
         const dbPath = path.join(dir, `named-memory-${name}.db`);
+
+        // NEW: clean cache dir for fastembed model files
+        const cacheDir = path.join(dir, "fastembed_cache");
+        await ctx.$`mkdir -p ${cacheDir}`;
 
         if (activeName === name && activeMemory) {
           return `✅ Already using named memory '${name}' (${dbPath}).`;
         }
 
-        activeMemory = await createAgentMemory({ dbPath });
+        // Pass cacheDir to the new fastmemory version
+        activeMemory = await createAgentMemory({ dbPath, cacheDir });
         activeShouldCreate = await activeMemory.shouldCreateMemory(importanceThreshold, noveltyThreshold);
         activeName = name;
 
@@ -71,6 +74,25 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
       } catch (err: any) {
         console.error("[opencode-named-memory] Activate failed:", err);
         return `Failed to activate memory: ${err.message || String(err)}`;
+      }
+    },
+  });
+
+  // ── TOOL: Stop using memory ──
+  const namedMemoryStop = tool({
+    description: "Deactivate the currently active named memory. Auto-ingest and auto-prepend will stop until you call named_memory_use again.",
+    args: {},
+    async execute() {
+      try {
+        if (!activeMemory) return "No active named memory to stop.";
+        await activeMemory.close();
+        activeMemory = null;
+        activeName = null;
+        activeShouldCreate = null;
+        return `✅ Stopped using named memory.\nCall named_memory_use to activate again.`;
+      } catch (err: any) {
+        console.error("[opencode-named-memory] Stop failed:", err);
+        return `Failed to stop memory: ${err.message || String(err)}`;
       }
     },
   });
@@ -132,7 +154,7 @@ ${block}
   };
 
   return {
-    "message.updated": async ({ event }: any) => {
+    "message.updated": async ({ event }) => {
       if (event?.message?.role === "user") {
         ingestUserMessage(event.message).catch(console.error);
       }
@@ -144,6 +166,7 @@ ${block}
 
     tool: {
       named_memory_use: namedMemoryUse,
+      named_memory_stop: namedMemoryStop,
 
       named_memory_search: tool({
         description: "Search the currently active named memory (opencode-named-memory plugin). Must call named_memory_use first.",
