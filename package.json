@@ -1,6 +1,6 @@
 {
   "name": "opencode-named-memory",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Named persistent memory plugin for OpenCode - gives each agent or project its own long-term memory store backed by a local SQLite database",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,7 +16,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bun build ./index.ts --outdir ./dist --target bun --external onnxruntime-node && bun run build:types",
+    "build": "bun build ./index.ts --outdir ./dist --target bun --external onnxruntime-node --external onnxruntime-common && bun run build:types",
     "build:types": "tsc --emitDeclarationOnly",
     "prepublishOnly": "bun run build"
   },
@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "fastmemory": "0.1.4",
-    "onnxruntime-node": "1.21.0"
+    "onnxruntime-node": "1.21.0",
+    "onnxruntime-common": "~1.14.0"
   },
   "keywords": [
     "opencode",
