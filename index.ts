@@ -45,7 +45,7 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
 
   // ── TOOL: Activate/switch named memory ──
   const namedMemoryUse = tool({
-    description: "Activate (or switch to) a named memory store for the opencode-named-memory plugin. REQUIRED before any other memory tools work.",
+    description: "Activate (or switch to) a named memory store (e.g 'richard', 'work', etc.). REQUIRED before any other memory tools work.",
     args: {
       name: tool.schema.string().describe("Memory name, e.g. 'richard', 'work', 'personal-project' (auto-lowercased)"),
     },
@@ -78,24 +78,6 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
     },
   });
 
-  // ── TOOL: Stop using memory ──
-  const namedMemoryStop = tool({
-    description: "Deactivate the currently active named memory. Auto-ingest and auto-prepend will stop until you call named_memory_use again.",
-    args: {},
-    async execute() {
-      try {
-        if (!activeMemory) return "No active named memory to stop.";
-        await activeMemory.close();
-        activeMemory = null;
-        activeName = null;
-        activeShouldCreate = null;
-        return `✅ Stopped using named memory.\nCall named_memory_use to activate again.`;
-      } catch (err: any) {
-        console.error("[opencode-named-memory] Stop failed:", err);
-        return `Failed to stop memory: ${err.message || String(err)}`;
-      }
-    },
-  });
 
   // ── AUTO-INGEST (only when active) ──
   const ingestUserMessage = async (msg: any) => {
@@ -166,18 +148,15 @@ ${block}
 
     tool: {
       named_memory_use: namedMemoryUse,
-      named_memory_stop: namedMemoryStop,
-
       named_memory_search: tool({
-        description: "Search the currently active named memory (opencode-named-memory plugin). Must call named_memory_use first.",
+        description: "Search the currently active named memory. Must call named_memory_use first. Use specific keywords and distinctive terms rather than vague descriptions (e.g. 'postgres uuid indexing' not 'database stuff').",
         args: {
           query: tool.schema.string().describe("Natural language search query"),
-          limit: tool.schema.number().optional().default(6),
         },
         async execute(args) {
           if (!activeMemory) return "No active named memory. Call named_memory_use first.";
           try {
-            const results = await activeMemory.searchHybrid(args.query, args.limit || 6);
+            const results = await activeMemory.searchHybrid(args.query, 6);
             if (results.length === 0) return `No memories found for "${args.query}" in '${activeName}'.`;
             return results
               .map((m: MemoryEntry, i: number) => 
@@ -191,15 +170,14 @@ ${block}
       }),
 
       named_memory_add: tool({
-        description: "Force-add to the currently active named memory (opencode-named-memory plugin). Must call named_memory_use first.",
+        description: "Add a memory to the currently active named memory. Must call named_memory_use first.",
         args: {
           content: tool.schema.string().describe("Exact text to remember"),
-          type: tool.schema.string().optional().default("manual"),
         },
         async execute(args) {
           if (!activeMemory) return "No active named memory. Call named_memory_use first.";
           try {
-            const id = await activeMemory.add(args.content, { type: args.type, name: activeName });
+            const id = await activeMemory.add(args.content, { type: "manual", name: activeName });
             return `✅ Added to '${activeName}' (ID: ${id})\n${args.content}`;
           } catch (err: any) {
             return `Add failed: ${err.message || String(err)}`;
@@ -207,18 +185,7 @@ ${block}
         },
       }),
 
-      named_memory_stats: tool({
-        description: "Show stats for the currently active named memory (opencode-named-memory plugin). Must call named_memory_use first.",
-        args: {},
-        async execute() {
-          if (!activeMemory) return "No active named memory. Call named_memory_use first.";
-          try {
-            return `Named memory '${activeName}' contains ${activeMemory.getStats().total} entries.`;
-          } catch (err: any) {
-            return `Stats error: ${err.message || String(err)}`;
-          }
-        },
-      }),
+
     },
 
     async destroy() {
