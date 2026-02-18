@@ -1,6 +1,6 @@
 {
   "name": "opencode-named-memory",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Named persistent memory plugin for OpenCode - gives each agent or project its own long-term memory store backed by a local SQLite database",
   "type": "module",
   "main": "./dist/index.js",
@@ -29,7 +29,7 @@
     "@opencode-ai/plugin": "^1.1.25"
   },
   "dependencies": {
-    "fastmemory": "0.1.1"
+    "fastmemory": "0.1.2"
   },
   "keywords": [
     "opencode",
