@@ -184,10 +184,9 @@ ${block}
       }),
 
       judge_if_memory_worth_saving: tool({
-        description: "Evaluate whether content is worth saving as a permanent memory. Analyzes importance (preferences, facts, lessons) and novelty (not a duplicate). Can optionally check against active memory for duplicates.",
+        description: "Evaluate whether content is worth saving as a permanent memory. Analyzes importance (preferences, facts, lessons) and novelty (not a duplicate). Always checks for duplicates when memory is active.",
         args: {
           content: tool.schema.string().describe("The content to evaluate for memory-worthiness"),
-          check_active_memory: tool.schema.boolean().optional().default(true).describe("If true and a memory is active, also check for duplicates in the current named memory"),
         },
         async execute(args) {
           const content = args.content;
@@ -201,11 +200,18 @@ ${block}
           }
 
           // Use the active memory's shouldCreate if available, otherwise we can't judge
-          if (args.check_active_memory && activeMemory && activeShouldCreate) {
+          if (activeMemory && activeShouldCreate) {
+            // First check for duplicates by searching for similar memories
+            const similarMemories = await activeMemory.searchHybrid(content, 3);
+            const bestMatch = similarMemories[0];
+            if (bestMatch && (bestMatch.score || 0) > 0.92) {
+              return `❌ DUPLICATE - NOT SAVED\nReason: Too similar to existing memory (similarity: ${(bestMatch.score || 0).toFixed(3)})\nExisting: ${bestMatch.content.slice(0, 100)}${bestMatch.content.length > 100 ? "..." : ""}\n\nNew content: ${content}\n\nThis appears to be a duplicate of something already remembered.`;
+            }
+            
             const isWorthSaving = await activeShouldCreate(content);
             
             if (!isWorthSaving) {
-              return `❌ NOT worth saving\nReason: Not important enough or too similar to existing memories\nContent: ${content}\n\nTip: Permanent memories should capture user preferences, facts, lessons learned, or project rules. Avoid ephemeral details like "currently fixing a bug" or "thanks for the help".`;
+              return `❌ NOT IMPORTANT ENOUGH\nReason: Content doesn't meet importance threshold for permanent storage\nContent: ${content}\n\nTip: Permanent memories should capture user preferences, facts, lessons learned, or project rules. Avoid ephemeral details like "currently fixing a bug" or "thanks for the help".`;
             }
             
             return `✅ WORTH SAVING\nContent: ${content}\n\nThis appears to be a permanent preference, fact, or lesson that should be remembered.`;
