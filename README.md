@@ -85,7 +85,7 @@ Names are auto-lowercased and sanitized. You can switch stores mid-session by ca
 Search the active memory with a natural language query.
 
 ```
-named_memory_search({ query: "preferred coding style", limit: 5 })
+named_memory_search({ query: "preferred coding style" })
 ```
 
 ### `named_memory_add`
@@ -93,16 +93,21 @@ named_memory_search({ query: "preferred coding style", limit: 5 })
 Force-add a specific piece of information to the active memory.
 
 ```
-named_memory_add({ content: "Prefers TypeScript with strict mode off", type: "preference" })
+named_memory_add({ content: "Prefers TypeScript with strict mode off" })
 ```
 
-### `named_memory_stats`
+### `judge_if_memory_worth_saving`
 
-Show how many entries are in the active memory store.
+Evaluate whether content is worth saving as a permanent memory. Checks for duplicates and importance. Returns distinct responses for duplicates vs. not important enough.
 
 ```
-named_memory_stats()
+judge_if_memory_worth_saving({ content: "I prefer dark mode interfaces" })
 ```
+
+Possible responses:
+- `❌ DUPLICATE` - Too similar to existing memory (shows the existing match)
+- `❌ NOT IMPORTANT ENOUGH` - Doesn't meet importance threshold
+- `✅ WORTH SAVING` - Passes both checks and should be remembered
 
 ## License
 
