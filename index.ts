@@ -183,6 +183,38 @@ ${block}
         },
       }),
 
+      judge_if_memory_worth_saving: tool({
+        description: "Evaluate whether content is worth saving as a permanent memory. Analyzes importance (preferences, facts, lessons) and novelty (not a duplicate). Can optionally check against active memory for duplicates.",
+        args: {
+          content: tool.schema.string().describe("The content to evaluate for memory-worthiness"),
+          check_active_memory: tool.schema.boolean().optional().default(true).describe("If true and a memory is active, also check for duplicates in the current named memory"),
+        },
+        async execute(args) {
+          const content = args.content;
+          
+          // Basic length check
+          if (content.length < 20) {
+            return `❌ NOT worth saving\nReason: Too short (${content.length} chars, minimum 20)\nContent: ${content}`;
+          }
+          if (content.length > 800) {
+            return `❌ NOT worth saving\nReason: Too long (${content.length} chars, maximum 800)\nContent: ${content.slice(0, 100)}...`;
+          }
+
+          // Use the active memory's shouldCreate if available, otherwise we can't judge
+          if (args.check_active_memory && activeMemory && activeShouldCreate) {
+            const isWorthSaving = await activeShouldCreate(content);
+            
+            if (!isWorthSaving) {
+              return `❌ NOT worth saving\nReason: Not important enough or too similar to existing memories\nContent: ${content}\n\nTip: Permanent memories should capture user preferences, facts, lessons learned, or project rules. Avoid ephemeral details like "currently fixing a bug" or "thanks for the help".`;
+            }
+            
+            return `✅ WORTH SAVING\nContent: ${content}\n\nThis appears to be a permanent preference, fact, or lesson that should be remembered.`;
+          }
+          
+          // No active memory to judge with - give manual guidance
+          return `⚠️ Cannot auto-judge: No active memory. Call named_memory_use first to activate memory-based judgment.\n\nContent to evaluate: ${content}\n\nManual guidance:\n✅ SAVE if: User preferences, personal facts, lessons learned, project rules, or things explicitly requested to remember\n❌ SKIP if: Ephemeral events, casual chat, questions, status updates, opinions about external things, or emotional reactions`;
+        },
+      }),
 
     },
 
