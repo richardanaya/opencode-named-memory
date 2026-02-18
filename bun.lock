@@ -6,7 +6,7 @@
       "name": "opencode-named-memory",
       "dependencies": {
         "fastmemory": "0.1.4",
-        "onnxruntime-common": "~1.14.0",
+        "onnxruntime-common": "1.21.0",
         "onnxruntime-node": "1.21.0",
       },
       "devDependencies": {
@@ -154,7 +154,7 @@
 
     "object-keys": ["object-keys@1.1.1", "", {}, "sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA=="],
 
-    "onnxruntime-common": ["onnxruntime-common@1.14.0", "", {}, "sha512-3LJpegM2iMNRX2wUmtYfeX/ytfOzNwAWKSq1HbRrKc9+uqG/FsEA0bbKZl1btQeZaXhC26l44NWpNUeXPII7Ew=="],
+    "onnxruntime-common": ["onnxruntime-common@1.21.0", "", {}, "sha512-Q632iLLrtCAVOTO65dh2+mNbQir/QNTVBG3h/QdZBpns7mZ0RYbLRBgGABPbpU9351AgYy7SJf1WaeVwMrBFPQ=="],
 
     "onnxruntime-node": ["onnxruntime-node@1.21.0", "", { "dependencies": { "global-agent": "^3.0.0", "onnxruntime-common": "1.21.0", "tar": "^7.0.1" }, "os": [ "linux", "win32", "darwin", ] }, "sha512-NeaCX6WW2L8cRCSqy3bInlo5ojjQqu2fD3D+9W5qb5irwxhEyWKXeH2vZ8W9r6VxaMPUan+4/7NDwZMtouZxEw=="],
 
@@ -189,8 +189,6 @@
     "yallist": ["yallist@5.0.0", "", {}, "sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw=="],
 
     "zod": ["zod@4.1.8", "", {}, "sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ=="],
-
-    "onnxruntime-node/onnxruntime-common": ["onnxruntime-common@1.21.0", "", {}, "sha512-Q632iLLrtCAVOTO65dh2+mNbQir/QNTVBG3h/QdZBpns7mZ0RYbLRBgGABPbpU9351AgYy7SJf1WaeVwMrBFPQ=="],
 
     "onnxruntime-web/onnxruntime-common": ["onnxruntime-common@1.22.0-dev.20250409-89f8206ba4", "", {}, "sha512-vDJMkfCfb0b1A836rgHj+ORuZf4B4+cc2bASQtpeoJLueuFc5DuYwjIZUBrSvx/fO5IrLjLz+oTrB3pcGlhovQ=="],
   }
