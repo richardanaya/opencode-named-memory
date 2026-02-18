@@ -43,6 +43,15 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
       .replace(/^-|-$/g, "") || "default";
   }
 
+  // Escape special characters for SQLite FTS5 queries
+  // Single quotes must be doubled up, and we wrap in quotes to handle special chars
+  function escapeFts5(query: string): string {
+    // Escape single quotes by doubling them (SQLite standard)
+    const escaped = query.replace(/'/g, "''");
+    // Wrap in double quotes to handle other special FTS5 characters like - * " etc
+    return `"${escaped}"`;
+  }
+
   // ── TOOL: Activate/switch named memory ──
   const namedMemoryUse = tool({
     description: "Activate (or switch to) a named memory store (e.g 'richard', 'work', etc.). REQUIRED before any other memory tools work.",
@@ -102,7 +111,7 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
       const taskHint = input?.prompt || input?.messages?.[input.messages?.length - 1]?.content || "current coding task";
       const query = typeof taskHint === "string" ? taskHint : JSON.stringify(taskHint);
 
-      let memories = await activeMemory.searchHybrid(query, maxMemories + 10);
+      let memories = await activeMemory.searchHybrid(escapeFts5(query), maxMemories + 10);
 
       const now = Date.now();
       memories = memories
@@ -154,7 +163,7 @@ ${block}
         async execute(args) {
           if (!activeMemory) return "No active named memory. Call named_memory_use first.";
           try {
-            const results = await activeMemory.searchHybrid(args.query, 6);
+            const results = await activeMemory.searchHybrid(escapeFts5(args.query), 6);
             if (results.length === 0) return `No memories found for "${args.query}" in '${activeName}'.`;
             return results
               .map((m: MemoryEntry, i: number) => 
@@ -202,7 +211,7 @@ ${block}
           // Use the active memory's shouldCreate if available, otherwise we can't judge
           if (activeMemory && activeShouldCreate) {
             // First check for duplicates by searching for similar memories
-            const similarMemories = await activeMemory.searchHybrid(content, 3);
+            const similarMemories = await activeMemory.searchHybrid(escapeFts5(content), 3);
             const bestMatch = similarMemories[0];
             if (bestMatch && (bestMatch.score || 0) > 0.92) {
               return `❌ DUPLICATE - NOT SAVED\nReason: Too similar to existing memory (similarity: ${(bestMatch.score || 0).toFixed(3)})\nExisting: ${bestMatch.content.slice(0, 100)}${bestMatch.content.length > 100 ? "..." : ""}\n\nNew content: ${content}\n\nThis appears to be a duplicate of something already remembered.`;

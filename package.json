@@ -1,6 +1,6 @@
 {
   "name": "opencode-named-memory",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Named persistent memory plugin for OpenCode - gives each agent or project its own long-term memory store backed by a local SQLite database",
   "type": "module",
   "main": "./dist/index.js",
