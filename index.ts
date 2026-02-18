@@ -56,9 +56,7 @@ export const OpencodeNamedMemoryPlugin: Plugin = async (ctx) => {
 
         const name = sanitizeName(args.name);
         const dbPath = path.join(dir, `named-memory-${name}.db`);
-
-        // NEW: clean cache dir for fastembed model files
-        const cacheDir = path.join(dir, "fastembed_cache");
+        const cacheDir = path.join(dir, "model_cache");
         await ctx.$`mkdir -p ${cacheDir}`;
 
         if (activeName === name && activeMemory) {
