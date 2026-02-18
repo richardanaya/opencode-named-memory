@@ -1,0 +1,9 @@
+node_modules/
+index.ts
+tsconfig.json
+bun.lock
+*.db
+*.log
+.DS_Store
+.env
+.gitignore

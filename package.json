@@ -1,0 +1,53 @@
+{
+  "name": "opencode-named-memory",
+  "version": "0.0.0",
+  "description": "Named persistent memory plugin for OpenCode - gives each agent or project its own long-term memory store backed by a local SQLite database",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bun build ./index.ts --outdir ./dist --target bun && bun run build:types",
+    "build:types": "tsc --emitDeclarationOnly",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.2",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "^1.1.25"
+  },
+  "dependencies": {
+    "fastmemory": "^0.1.0"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "memory",
+    "persistent",
+    "sqlite",
+    "agent",
+    "named-memory"
+  ],
+  "author": "Richard Anaya",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/richardanaya/opencode-named-memory.git"
+  },
+  "homepage": "https://github.com/richardanaya/opencode-named-memory#readme",
+  "bugs": {
+    "url": "https://github.com/richardanaya/opencode-named-memory/issues"
+  }
+}
